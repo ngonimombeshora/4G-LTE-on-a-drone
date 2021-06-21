@@ -21,7 +21,7 @@
   It is also hosting some tutorials:
 
   - [Simple Docker Deployment](./docs/DEPLOY_HOME.md)
-  - [Docker deployment adapted to local environment, including caveats](./docs/DEPLOY_LOCAL.md)
+  - [Docker deployment adapted to local environment, including caveats (Ngoni)](./docs/DEPLOY_LOCAL.md)
 
 # Licence info
 

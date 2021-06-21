@@ -1,0 +1,100 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the terms found in the LICENSE file in the root of this source tree.
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface MME service
+#   Valid for CentOS 8
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM centos:8 as oai-mme
+
+ARG EURECOM_PROXY
+ARG BUILD_FOR_CI
+ARG CI_SRC_BRANCH
+ARG CI_SRC_COMMIT
+ARG CI_DEST_BRANCH
+
+RUN yum update -y \
+  && yum install epel-release -y \
+  && yum install dnf-plugins-core -y \
+  && yum config-manager --set-enabled PowerTools \
+  && yum install -y \
+    psmisc \
+    git
+
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN yum install -y \
+    psmisc \
+    openssl \
+    net-tools \
+    bc \
+    tcpdump \
+    lksctp-tools \
+    nettle \
+    libconfig \
+    gnutls \
+    libidn \
+    vim \
+    # for some reasons diff, cmp and file are not present in ubi
+    diffutils \
+    file \
+    # debugging
+    gdb \
+    valgrind \
+    tree \
+    tcpdump \
+    wireshark-cli \
+    net-tools \
+    procps-ng \
+  && yum clean all -y \
+  && rm -rf /var/cache/yum
+  
+# Some GIT configuration command quite useful
+RUN /bin/bash -c "if [[ -v EURECOM_PROXY ]]; then git config --global http.proxy $EURECOM_PROXY; fi"
+RUN git config --global https.postBuffer 123289600
+RUN git config --global http.sslverify false
+# In normal case, we build out of the develop branch
+RUN /bin/bash -c "if [[ -v CI_SRC_BRANCH ]]; then git clone https://github.com/OPENAIRINTERFACE/openair-mme.git -b $CI_SRC_BRANCH /openair-mme; else git clone https://github.com/OPENAIRINTERFACE/openair-mme.git -b develop /openair-mme; fi"
+# For CI, especially for Pull/Merge Requests, we build out of temp merge
+WORKDIR /openair-mme
+RUN /bin/bash -c "if [[ -v BUILD_FOR_CI ]]; then git config --global user.name \"OAI CI\"; fi"
+RUN /bin/bash -c "if [[ -v BUILD_FOR_CI ]]; then git config --global user.email ci@openairinterface.org; fi"
+RUN /bin/bash -c "if [[ -v BUILD_FOR_CI ]]; then git checkout -f $CI_SRC_COMMIT; fi"
+RUN /bin/bash -c "if [[ -v BUILD_FOR_CI ]]; then git merge --ff origin/$CI_DEST_BRANCH -m \"Temporary merge for CI\"; fi"
+
+# Installing and Building MME
+WORKDIR /openair-mme
+RUN sed -i -e "s@python@python2@" ./build/CMakeLists.txt
+WORKDIR /openair-mme/scripts
+RUN ./build_mme --check-installed-software --force
+RUN ./build_mme --clean --build-type Debug --Verbose
+
+# Copying executable and config file
+WORKDIR /openair-mme/bin
+RUN cp /openair-mme/build/mme/build/mme /openair-mme/bin/oai_mme \
+    && sed -i -e 's#freeDiameter/##' /openair-mme/etc/mme.conf \ 
+    && cp /openair-mme/etc/mme_fd.sprint.conf /openair-mme/etc/mme_fd.conf \ 
+    && sed -i -e "s#@PREFIX@/freeDiameter#@PREFIX@#g" /openair-mme/etc/mme_fd.conf \
+    && sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" /openair-mme/scripts/check_mme_s6a_certificate \
+    && sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" /openair-mme/scripts/check_mme_s6a_certificate
+
+WORKDIR /openair-mme
+RUN openssl rand -out /root/.rnd 128
