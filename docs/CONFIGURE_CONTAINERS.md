@@ -145,6 +145,8 @@ We are using the following configuration. You need to adapt to your setup.
 
 ## 3.1. Cassandra ##
 
+try cpying the new generated db
+
 ```bash
 $ docker cp component/oai-hss/src/hss_rel14/db/oai_db.cql prod-cassandra:/home
 $ docker exec -it prod-cassandra /bin/bash -c "nodetool status"
@@ -153,13 +155,13 @@ $ docker exec -it prod-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ${C
 ```
 
 ## 3.2. HSS ##
-
+#changing users to 10 and imsi to a programmed one
 ```bash
 $ HSS_IP=`docker exec -it prod-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed`
 $ python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Cassandra_IP} \
           --hss_s6a=${HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com \
-          --users=200 --imsi=320230100000001 \
-          --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d \
+          --users=10 --imsi=208930000000001 \
+          --ltek=efbfbdefbfbd473f2fefbfbdd094efbf --op=00000000000000000000000000000000 \
           --nb_mmes=1 --from_docker_file
 $ docker cp ./hss-cfg.sh prod-oai-hss:/openair-hss/scripts
 $ docker exec -it prod-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"
@@ -293,7 +295,7 @@ and not the Docker Host IP address.
 
 ```bash
 $ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
-          --s11c=enx0024322405d3 --sxc=enx0024322405d3 --apn=apn1.carrier.com \
+          --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com \
           --dns1_ip=137.158.152.240 --dns2_ip=137.158.153.130 --from_docker_file
 $ docker cp ./spgwc-cfg.sh prod-oai-spgwc:/openair-spgwc
 $ docker exec -it prod-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
@@ -305,7 +307,7 @@ ifconfig lo:p5c 127.0.0.16 up --> OK
 
 ```bash
 $ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
-          --sxc_ip_addr=${SPGW0_IP} --sxu=enx0024322405d3 --s1u=enx0024322405d3 --from_docker_file
+          --sxc_ip_addr=${SPGW0_IP} --sxu=eth0 --s1u=eth0 --from_docker_file
 $ docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny:/openair-spgwu-tiny
 $ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
 ```

@@ -148,7 +148,7 @@ class spgwuConfigGen():
 		conf_file.write('        };\n')
 		conf_file.write('    };\n')
 		if threadPrioNeeded:
-			conf_file.write('    SNAT = "no";\n')
+			conf_file.write('    SNAT = "yes";\n')
 			conf_file.write('    PDN_NETWORK_LIST  = (\n')
 			# Only one is now supported
 			pdn = pdns[0]
@@ -157,9 +157,9 @@ class spgwuConfigGen():
 		else:
 			conf_file.write('    PDN_NETWORK_LIST  = (\n')
 			for pdn in pdns[ 0:len(pdns)-1 ]:
-				conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";},\n')
+				conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "yes";},\n')
 			pdn = pdns[len(pdns) - 1]
-			conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";}\n')
+			conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "yes";}\n')
 			conf_file.write('                    );\n')
 
 		conf_file.write('    SPGW-C_LIST = (\n')

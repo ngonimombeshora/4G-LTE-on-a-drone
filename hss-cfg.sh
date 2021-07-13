@@ -7,10 +7,10 @@ PREFIX='/openair-hss/etc'
 MY_REALM='openairinterface.org'
 MY_APN1='apn1.carrier.com'
 MY_APN2='apn2.carrier.com'
-MY_LTE_K='0c0a34601d4f07677303652c0462535b'
-MY_OP_K='63bfa50ee6523365ff14c1f45f88737d'
-MY_IMSI='320230100000001'
-MY_USERS='200'
+MY_LTE_K='efbfbdefbfbd473f2fefbfbdd094efbf'
+MY_OP_K='00000000000000000000000000000000'
+MY_IMSI='208930000000001'
+MY_USERS='10'
 
 mkdir -p /openair-hss/logs
 

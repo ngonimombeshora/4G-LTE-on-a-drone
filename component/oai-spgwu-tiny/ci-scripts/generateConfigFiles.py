@@ -34,7 +34,8 @@ class spgwuConfigGen():
 		self.fromDockerFile = False
 		self.envForEntrypoint = False
 		self.networkUeIp = ipaddress.ip_network('12.1.1.0/24')
-		self.networkUeNatOption = 'no'
+		self.networkUeNatOption = 'yes'  #changed by Ngoni. From "no"
+
 
 	def GenerateSpgwuConfigurer(self):
 		spgwuFile = open('./spgwu-cfg.sh', 'w')
